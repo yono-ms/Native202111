@@ -10,11 +10,22 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.native202111.ui.theme.Native202111Theme
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class MainActivity : ComponentActivity() {
+
+    private val logger: Logger by lazy { LoggerFactory.getLogger(javaClass.simpleName) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        logger.info("onCreate savedInstanceState=$savedInstanceState")
+
         setContent {
             Native202111Theme {
                 // A surface container using the 'background' color from the theme
@@ -22,9 +33,19 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting("Android")
+                    MainScreen()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun MainScreen() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "Home") {
+        composable("Home") {
+            HomeScreen()
         }
     }
 }
