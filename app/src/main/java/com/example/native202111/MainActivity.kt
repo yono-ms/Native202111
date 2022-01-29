@@ -14,9 +14,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.native202111.ui.theme.Native202111Theme
+import dagger.hilt.android.AndroidEntryPoint
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val logger: Logger by lazy { LoggerFactory.getLogger(javaClass.simpleName) }
