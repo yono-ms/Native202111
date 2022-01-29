@@ -19,11 +19,35 @@ class HomeViewModel @Inject constructor() : ViewModel() {
     private val _welcomeDate = MutableStateFlow(Date().toBestString())
     val welcomeDate: StateFlow<String> = _welcomeDate
 
+    private val _showInputDialog = MutableStateFlow(false)
+    val showInputDialog: StateFlow<Boolean> = _showInputDialog
+
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName
+
     fun refresh() {
         logger.info("refresh START.")
         viewModelScope.launch {
             logger.info("update.")
             _welcomeDate.value = Date().toBestString()
+        }
+    }
+
+    fun editUserName() {
+        logger.info("editUserName START")
+        viewModelScope.launch { _showInputDialog.value = true }
+    }
+
+    fun cancelEditUserName() {
+        logger.info("cancelEditUserName START")
+        viewModelScope.launch { _showInputDialog.value = false }
+    }
+
+    fun confirmEditUserName(userName: String) {
+        logger.info("confirmEditUserName START $userName")
+        viewModelScope.launch {
+            _showInputDialog.value = false
+            _userName.value = userName
         }
     }
 }
