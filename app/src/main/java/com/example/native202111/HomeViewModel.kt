@@ -60,6 +60,12 @@ class HomeViewModel @Inject constructor(
             _showInputDialog.value = false
             _userName.value = userName
             appPrefs.setUserName(userName)
+            kotlin.runCatching {
+                _repoItems.value = getRepositoryItems(userName)
+                logger.debug("${_repoItems.value}")
+            }.onFailure {
+                logger.error("init", it)
+            }
         }
     }
 

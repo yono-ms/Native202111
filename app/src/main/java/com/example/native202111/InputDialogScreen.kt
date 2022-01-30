@@ -26,30 +26,50 @@ fun InputDialogScreen(
 ) {
     val logger: Logger by lazy { LoggerFactory.getLogger("InputDialog") }
 
-    val okText = stringResource(id = android.R.string.ok)
-    val cancelText = stringResource(id = android.R.string.cancel)
-
     val inputValue by viewModel.inputValue.collectAsState()
     if (inputValue.isEmpty()) {
         logger.info("inputValue is empty. set $value")
         viewModel.setInputValue(value)
     }
 
+    InputDialogContent(
+        title = title,
+        onOk = {
+            onOk(inputValue)
+            viewModel.clearInputValue()
+        },
+        onCancel = {
+            onCancel()
+            viewModel.clearInputValue()
+        },
+        inputValue = inputValue,
+        onValueChange = {
+            logger.debug("onValueChange $it")
+            viewModel.setInputValue(it)
+        }
+    )
+}
+
+@Composable
+fun InputDialogContent(
+    title: String,
+    onOk: () -> Unit,
+    onCancel: () -> Unit,
+    inputValue: String,
+    onValueChange: (newValue: String) -> Unit,
+) {
+    val okText = stringResource(id = android.R.string.ok)
+    val cancelText = stringResource(id = android.R.string.cancel)
+
     AlertDialog(
         onDismissRequest = { /* ignore */ },
         confirmButton = {
-            TextButton(onClick = {
-                onOk(inputValue)
-                viewModel.clearInputValue()
-            }) {
+            TextButton(onClick = onOk) {
                 Text(text = okText)
             }
         },
         dismissButton = {
-            TextButton(onClick = {
-                onCancel()
-                viewModel.clearInputValue()
-            }) {
+            TextButton(onClick = onCancel) {
                 Text(text = cancelText)
             }
         },
@@ -57,10 +77,7 @@ fun InputDialogScreen(
         text = {
             TextField(
                 value = inputValue,
-                onValueChange = {
-                    logger.debug("onValueChange $it")
-                    viewModel.setInputValue(it)
-                },
+                onValueChange = onValueChange,
                 label = { Text(text = title) },
                 placeholder = { Text(text = "your login name") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -74,6 +91,6 @@ fun InputDialogScreen(
 @Composable
 fun InputDialogScreenPreview() {
     Native202111Theme {
-        InputDialogScreen("value", "title", {}, {})
+        InputDialogContent("title", {}, {}, "inputValue", {})
     }
 }

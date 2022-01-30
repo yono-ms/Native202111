@@ -110,11 +110,19 @@ fun HomeContent(
 @Composable
 fun HomePreview() {
     Native202111Theme {
-        HomeContent("Date Format", {}, {}, false, {}, {}, "user name", listOf(
-            RepoModel("Name1", "date1"),
-            RepoModel("Name2", "date2"),
-            RepoModel("Name3", "date3"),
-        )
+        HomeContent(
+            "Date Format",
+            {},
+            {},
+            false,
+            {},
+            {},
+            "user name",
+            listOf(
+                RepoModel("Name1", "date1"),
+                RepoModel("Name2", "date2"),
+                RepoModel("Name3", "date3"),
+            )
         )
     }
 }
