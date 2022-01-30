@@ -2,6 +2,7 @@ package com.example.native202111
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.native202111.preference.AppPrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,9 @@ import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor() : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val appPrefs: AppPrefs
+) : ViewModel() {
 
     private val logger: Logger by lazy { LoggerFactory.getLogger(javaClass.simpleName) }
 
@@ -48,6 +51,16 @@ class HomeViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _showInputDialog.value = false
             _userName.value = userName
+            appPrefs.setUserName(userName)
+        }
+    }
+
+    init {
+        logger.info("init.")
+        viewModelScope.launch {
+            appPrefs.getUserName()?.let {
+                _userName.value = it
+            }
         }
     }
 }
