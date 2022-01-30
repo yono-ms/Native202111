@@ -2,11 +2,15 @@ package com.example.native202111
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.native202111.network.RepoModel
+import com.example.native202111.network.ServerAPI
+import com.example.native202111.network.UserModel
 import com.example.native202111.preference.AppPrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -14,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val appPrefs: AppPrefs
+    private val appPrefs: AppPrefs,
+    private val serverAPI: ServerAPI
 ) : ViewModel() {
 
     private val logger: Logger by lazy { LoggerFactory.getLogger(javaClass.simpleName) }
@@ -27,6 +32,9 @@ class HomeViewModel @Inject constructor(
 
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
+
+    private val _repoItems = MutableStateFlow(listOf<RepoModel>())
+    val repoItems: StateFlow<List<RepoModel>> = _repoItems
 
     fun refresh() {
         logger.info("refresh START.")
@@ -55,11 +63,30 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private suspend fun getRepositoryItems(userName: String): List<RepoModel> {
+        val userModel = serverAPI.getDecode(
+            serverAPI.getUsersUrl(userName),
+            UserModel.serializer()
+        )
+        val repoModels = serverAPI.getDecode(
+            userModel.reposUrl,
+            ListSerializer(RepoModel.serializer())
+        )
+        logger.debug("repoModels.size = ${repoModels.size}")
+        return repoModels
+    }
+
     init {
         logger.info("init.")
         viewModelScope.launch {
-            appPrefs.getUserName()?.let {
-                _userName.value = it
+            kotlin.runCatching {
+                appPrefs.getUserName()?.let {
+                    _userName.value = it
+                    _repoItems.value = getRepositoryItems(it)
+                    logger.debug("${_repoItems.value}")
+                }
+            }.onFailure {
+                logger.error("init", it)
             }
         }
     }
