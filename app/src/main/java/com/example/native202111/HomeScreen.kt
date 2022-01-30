@@ -96,13 +96,14 @@ fun HomeContent(
             }
         }
     }
-    InputDialogScreen(
-        showDialog = showInputDialog,
-        value = userName,
-        title = "Input UserName",
-        onCancel = onCancelEditUserName,
-        onOk = onConfirmEditUserName
-    )
+    if (showInputDialog) {
+        InputDialogScreen(
+            value = userName,
+            title = "Input UserName",
+            onCancel = onCancelEditUserName,
+            onOk = onConfirmEditUserName
+        )
+    }
 }
 
 @Preview(showBackground = true)
