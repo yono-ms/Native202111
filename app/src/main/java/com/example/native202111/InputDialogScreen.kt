@@ -27,10 +27,8 @@ fun InputDialogScreen(
     val logger: Logger by lazy { LoggerFactory.getLogger("InputDialog") }
 
     val inputValue by viewModel.inputValue.collectAsState()
-    if (inputValue.isEmpty()) {
-        logger.info("inputValue is empty. set $value")
-        viewModel.setInputValue(value)
-    }
+
+    viewModel.initInputValue(value)
 
     InputDialogContent(
         title = title,

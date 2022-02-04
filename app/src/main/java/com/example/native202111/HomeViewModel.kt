@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.native202111.network.RepoModel
 import com.example.native202111.network.ServerAPI
 import com.example.native202111.network.UserModel
-import com.example.native202111.preference.AppPrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
 import org.slf4j.Logger
@@ -18,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val appPrefs: AppPrefs,
+    private val appDataStore: AppDataStore,
     private val serverAPI: ServerAPI
 ) : ViewModel() {
 
@@ -58,14 +59,8 @@ class HomeViewModel @Inject constructor(
         logger.info("confirmEditUserName START $userName")
         viewModelScope.launch {
             _showInputDialog.value = false
-            _userName.value = userName
-            appPrefs.setUserName(userName)
-            kotlin.runCatching {
-                _repoItems.value = getRepositoryItems(userName)
-                logger.debug("${_repoItems.value}")
-            }.onFailure {
-                logger.error("init", it)
-            }
+//            _userName.value = userName
+            appDataStore.setUserName(userName)
         }
     }
 
@@ -85,15 +80,22 @@ class HomeViewModel @Inject constructor(
     init {
         logger.info("init.")
         viewModelScope.launch {
+            logger.info("init launch START.")
             kotlin.runCatching {
-                appPrefs.getUserName()?.let {
-                    _userName.value = it
-                    _repoItems.value = getRepositoryItems(it)
+                appDataStore.appPreferencesFlow.collect {
+                    logger.info("appPreferencesFlow collect. $it")
+                    _userName.value = it.userName
+                    _repoItems.value = getRepositoryItems(it.userName)
                     logger.debug("${_repoItems.value}")
                 }
             }.onFailure {
-                logger.error("init", it)
+                if (it is CancellationException) {
+                    logger.info("init", it)
+                } else {
+                    logger.error("init", it)
+                }
             }
+            logger.info("init launch END.")
         }
     }
 }
