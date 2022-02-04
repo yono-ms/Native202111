@@ -13,6 +13,15 @@ class InputDialogViewModel @Inject constructor() : ViewModel() {
     private val _inputValue = MutableStateFlow("")
     val inputValue: StateFlow<String> = _inputValue
 
+    private var isInit = true
+
+    fun initInputValue(value: String) {
+        if (isInit) {
+            _inputValue.value = value
+            isInit = false
+        }
+    }
+
     fun setInputValue(value: String) {
         viewModelScope.launch {
             _inputValue.value = value
@@ -22,6 +31,7 @@ class InputDialogViewModel @Inject constructor() : ViewModel() {
     fun clearInputValue() {
         viewModelScope.launch {
             _inputValue.value = ""
+            isInit = true
         }
     }
 }

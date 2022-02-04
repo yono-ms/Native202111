@@ -5,8 +5,11 @@ import com.github.kittinunf.fuel.coroutines.awaitStringResponseResult
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ServerAPI {
+@Singleton
+class ServerAPI @Inject constructor() {
 
     private val logger = LoggerFactory.getLogger(javaClass.simpleName)
 
