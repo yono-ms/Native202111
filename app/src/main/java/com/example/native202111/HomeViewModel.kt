@@ -2,11 +2,15 @@ package com.example.native202111
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.native202111.database.AppDatabase
+import com.example.native202111.database.RepoEntity
+import com.example.native202111.database.UserEntity
 import com.example.native202111.network.RepoModel
 import com.example.native202111.network.ServerAPI
 import com.example.native202111.network.UserModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -20,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val appDataStore: AppDataStore,
+    private val appDatabase: AppDatabase,
     private val serverAPI: ServerAPI
 ) : ViewModel() {
 
@@ -34,8 +39,8 @@ class HomeViewModel @Inject constructor(
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
 
-    private val _repoItems = MutableStateFlow(listOf<RepoModel>())
-    val repoItems: StateFlow<List<RepoModel>> = _repoItems
+    private val _repoItems = MutableStateFlow(listOf<RepoEntity>())
+    val repoItems: StateFlow<List<RepoEntity>> = _repoItems
 
     fun refresh() {
         logger.info("refresh START.")
@@ -59,12 +64,11 @@ class HomeViewModel @Inject constructor(
         logger.info("confirmEditUserName START $userName")
         viewModelScope.launch {
             _showInputDialog.value = false
-//            _userName.value = userName
             appDataStore.setUserName(userName)
         }
     }
 
-    private suspend fun getRepositoryItems(userName: String): List<RepoModel> {
+    private suspend fun getRepositoryItems(userName: String) {
         val userModel = serverAPI.getDecode(
             serverAPI.getUsersUrl(userName),
             UserModel.serializer()
@@ -74,7 +78,58 @@ class HomeViewModel @Inject constructor(
             ListSerializer(RepoModel.serializer())
         )
         logger.debug("repoModels.size = ${repoModels.size}")
-        return repoModels
+
+        val userDate = userModel.updatedAt.fromIsoToDate()
+        val userEntity = UserEntity(
+            id = userModel.id,
+            userName = userName,
+            updateAt = userDate.time,
+            updateAtText = userDate.toBestString(),
+            reposUrl = userModel.reposUrl
+        )
+        appDatabase.userDao().insert(userEntity)
+
+        val list = mutableListOf<RepoEntity>()
+        repoModels.forEach {
+            val repoDate = it.updatedAt.fromIsoToDate()
+            val entry = RepoEntity(
+                id = it.id,
+                name = it.name,
+                updateAt = repoDate.time,
+                updateAtText = repoDate.toBestString(),
+                userId = userModel.id,
+                userName = userName
+            )
+            list.add(entry)
+        }
+        appDatabase.repoDao().insertAll(*list.toTypedArray())
+    }
+
+    private var job: Job? = null
+
+    private fun loadReposFromDatabase(userName: String) {
+        logger.info("loadReposFromDatabase $userName")
+        job?.let {
+            if (it.isActive) {
+                it.cancel()
+            }
+        }
+        job = viewModelScope.launch {
+            logger.info("loadReposFromDatabase launch START.")
+            kotlin.runCatching {
+                appDatabase.repoDao().loadRepoByUserName(userName).collect {
+                    logger.info("loadReposFromDatabase collect. $it")
+                    _repoItems.value = it
+                }
+            }.onFailure {
+                if (it is CancellationException) {
+                    logger.info("init", it)
+                } else {
+                    logger.error("init", it)
+                }
+            }
+            logger.info("loadReposFromDatabase launch END.")
+        }
     }
 
     init {
@@ -82,11 +137,17 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             logger.info("init launch START.")
             kotlin.runCatching {
-                appDataStore.appPreferencesFlow.collect {
-                    logger.info("appPreferencesFlow collect. $it")
-                    _userName.value = it.userName
-                    _repoItems.value = getRepositoryItems(it.userName)
+                appDataStore.appPreferencesFlow.collect { preferences ->
+                    logger.info("appPreferencesFlow collect. $preferences")
+                    _userName.value = preferences.userName
                     logger.debug("${_repoItems.value}")
+
+                    if (preferences.userName.isNotEmpty()) {
+                        if (appDatabase.repoDao().get(preferences.userName).isEmpty()) {
+                            getRepositoryItems(preferences.userName)
+                        }
+                        loadReposFromDatabase(preferences.userName)
+                    }
                 }
             }.onFailure {
                 if (it is CancellationException) {
