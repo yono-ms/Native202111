@@ -22,5 +22,8 @@ interface UserDao {
     suspend fun delete(userEntity: UserEntity)
 
     @Query("SELECT * FROM user_entity WHERE user_name = :userName")
-    fun loadUserByName(userName: String): Flow<UserEntity>
+    fun loadUserByName(userName: String): Flow<List<UserEntity>>
+
+    @Query("SELECT * FROM user_entity ORDER BY user_name ASC")
+    fun loadAllUser(): Flow<List<UserEntity>>
 }

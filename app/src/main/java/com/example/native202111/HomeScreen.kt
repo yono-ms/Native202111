@@ -22,17 +22,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.native202111.database.RepoEntity
 import com.example.native202111.ui.theme.Native202111Theme
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
     val welcomeDate by viewModel.welcomeDate.collectAsState()
     val showInputDialog by viewModel.showInputDialog.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val repoItems by viewModel.repoItems.collectAsState()
     HomeContent(
         date = welcomeDate,
+        onDataCheck = { navController.navigate(DestRoute.DataCheck.name) },
         onRefresh = { viewModel.refresh() },
         onClickUserName = { viewModel.editUserName() },
         showInputDialog = showInputDialog,
@@ -46,6 +48,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 @Composable
 fun HomeContent(
     date: String,
+    onDataCheck: () -> Unit,
     onRefresh: () -> Unit,
     onClickUserName: () -> Unit,
     showInputDialog: Boolean,
@@ -68,8 +71,14 @@ fun HomeContent(
             textAlign = TextAlign.Center
         )
         Divider()
-        Button(onClick = onRefresh, modifier = Modifier.align(Alignment.End)) {
-            Text(text = "REFRESH")
+        Row(modifier = Modifier.align(Alignment.End)) {
+            Button(onClick = onDataCheck) {
+                Text(text = "DATA CHECK")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = onRefresh) {
+                Text(text = "REFRESH")
+            }
         }
         Divider()
         Row(
@@ -112,6 +121,7 @@ fun HomePreview() {
     Native202111Theme {
         HomeContent(
             "Date Format",
+            {},
             {},
             {},
             false,
