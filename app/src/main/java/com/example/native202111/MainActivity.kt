@@ -42,12 +42,20 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+enum class DestRoute {
+    Home,
+    DataCheck,
+}
+
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "Home") {
-        composable("Home") {
-            HomeScreen()
+    NavHost(navController = navController, startDestination = DestRoute.Home.name) {
+        composable(DestRoute.Home.name) {
+            HomeScreen(navController)
+        }
+        composable(DestRoute.DataCheck.name) {
+            DataCheckScreen(navController)
         }
     }
 }

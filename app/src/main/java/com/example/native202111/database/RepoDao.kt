@@ -29,4 +29,7 @@ interface RepoDao {
 
     @Query("SELECT * FROM repo_entity WHERE user_name = :userName ORDER BY update_at DESC")
     fun loadRepoByUserName(userName: String): Flow<List<RepoEntity>>
+
+    @Query("SELECT * FROM repo_entity ORDER BY update_at DESC")
+    fun loadAllRepo(): Flow<List<RepoEntity>>
 }
