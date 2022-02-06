@@ -5,6 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserModel(
+    @SerialName("id")
+    val id: Int,
     @SerialName("repos_url")
-    val reposUrl: String
+    val reposUrl: String,
+    @SerialName("updated_at")
+    val updatedAt: String,
 )

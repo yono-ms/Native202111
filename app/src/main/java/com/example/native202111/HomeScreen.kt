@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.native202111.network.RepoModel
+import com.example.native202111.database.RepoEntity
 import com.example.native202111.ui.theme.Native202111Theme
 
 @Composable
@@ -52,7 +52,7 @@ fun HomeContent(
     onCancelEditUserName: () -> Unit,
     onConfirmEditUserName: (userName: String) -> Unit,
     userName: String,
-    repoItems: List<RepoModel>
+    repoItems: List<RepoEntity>
 ) {
     Column(
         modifier = Modifier
@@ -91,7 +91,7 @@ fun HomeContent(
             items(repoItems, key = { item -> item.name }) { repoItem ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(text = repoItem.name, fontSize = 16.sp)
-                    Text(text = repoItem.updatedAt, fontSize = 10.sp)
+                    Text(text = repoItem.updateAtText, fontSize = 10.sp)
                 }
             }
         }
@@ -119,9 +119,9 @@ fun HomePreview() {
             {},
             "user name",
             listOf(
-                RepoModel("Name1", "date1"),
-                RepoModel("Name2", "date2"),
-                RepoModel("Name3", "date3"),
+                RepoEntity(1, "Name1", 1, "date1", 1, ""),
+                RepoEntity(1, "Name2", 1, "date2", 1, ""),
+                RepoEntity(1, "Name3", 1, "date3", 1, ""),
             )
         )
     }
